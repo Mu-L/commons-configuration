@@ -17,6 +17,7 @@
 package org.apache.commons.configuration2.io;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,15 +34,61 @@ import org.apache.commons.lang3.SystemProperties;
  * </p>
  * <p>
  * When constructing an instance it can be configured whether the base path should be taken into account. If this option
- * is set, the base path is appended to the home directory if it is not <strong>null</strong>. This is useful for instance to
+ * is set, the base path is appended to the home directory if it is not {@code null}. This is useful for instance to
  * select a specific sub directory of the user's home directory. If this option is set to <strong>false</strong>, the base path is
  * always ignored, and only the file name is evaluated.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
+ *
+ * @see AbstractFileLocationStrategy
  */
 public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * Obtains the home directory to be used by a new instance. If a directory name is provided, it is used. Otherwise, the
+     * Builds new instances of {@link HomeDirectoryLocationStrategy}.
+     *
+     * @since 2.15.0
+     */
+    public static class Builder extends AbstractBuilder<HomeDirectoryLocationStrategy, Builder> {
+
+        /** The flag whether the base path is to be taken into account. */
+        private boolean evaluateBasePath;
+
+        /** The home directory to be searched for the requested file. */
+        private String homeDirectory;
+
+        @Override
+        public HomeDirectoryLocationStrategy get() throws IOException {
+            return new HomeDirectoryLocationStrategy(this);
+        }
+
+        /**
+         * Sets whether the base path should be evaluated.
+         *
+         * @param evaluateBasePath whether the base path should be evaluated.
+         * @return {@code this} instance..
+         */
+        public Builder setEvaluateBasePath(final boolean evaluateBasePath) {
+            this.evaluateBasePath = evaluateBasePath;
+            return asThis();
+        }
+
+        /**
+         * Sets the path to the home directory (may be {@code null}).
+         *
+         * @param homeDirectory the path to the home directory (may be {@code null})
+         * @return {@code this} instance..
+         */
+        public Builder setHomeDirectory(final String homeDirectory) {
+            this.homeDirectory = homeDirectory;
+            return asThis();
+        }
+    }
+
+    /**
+     * Gets the home directory to be used by a new instance. If a directory name is provided, it is used. Otherwise, the
      * user's home directory is looked up.
      *
      * @param homeDir the passed in home directory
@@ -51,11 +98,11 @@ public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy 
         return homeDir != null ? homeDir : SystemProperties.getUserHome();
     }
 
-    /** The home directory to be searched for the requested file. */
-    private final String homeDirectory;
-
     /** The flag whether the base path is to be taken into account. */
     private final boolean evaluateBasePath;
+
+    /** The home directory to be searched for the requested file. */
+    private final String homeDirectory;
 
     /**
      * Creates a new instance of {@code HomeDirectoryLocationStrategy} with default settings. The home directory is set to
@@ -69,21 +116,35 @@ public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy 
      * Creates a new instance of {@code HomeDirectoryLocationStrategy} and initializes the base path flag. The home
      * directory is set to the user's home directory.
      *
-     * @param withBasePath a flag whether the base path should be evaluated
+     * @param withBasePath a flag whether the base path should be evaluated.
+     * @deprecated Use {@link Builder#setEvaluateBasePath(boolean)}.
      */
+    @Deprecated
     public HomeDirectoryLocationStrategy(final boolean withBasePath) {
-        this(null, withBasePath);
+        this(new Builder().setHomeDirectory(null).setEvaluateBasePath(withBasePath));
+    }
+
+    /**
+     * Constructs a new instance.
+     *
+     * @param builder How to build the instance.
+     */
+    private HomeDirectoryLocationStrategy(final Builder builder) {
+        super(builder);
+        homeDirectory = getHomeDirectory(builder.homeDirectory);
+        evaluateBasePath = builder.evaluateBasePath;
     }
 
     /**
      * Creates a new instance of {@code HomeDirectoryLocationStrategy} and initializes it with the specified settings.
      *
-     * @param homeDir the path to the home directory (can be <strong>null</strong>)
-     * @param withBasePath a flag whether the base path should be evaluated
+     * @param homeDir the path to the home directory (may be {@code null}).
+     * @param withBasePath a flag whether the base path should be evaluated.
+     * @deprecated Use {@link Builder#setHomeDirectory(String)}.
      */
+    @Deprecated
     public HomeDirectoryLocationStrategy(final String homeDir, final boolean withBasePath) {
-        homeDirectory = getHomeDirectory(homeDir);
-        evaluateBasePath = withBasePath;
+        this(new Builder().setHomeDirectory(homeDir).setEvaluateBasePath(withBasePath));
     }
 
     /**
@@ -102,7 +163,7 @@ public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy 
     /**
      * Gets the home directory. In this directory the strategy searches for files.
      *
-     * @return the home directory used by this object
+     * @return the home directory used by this object.
      */
     public String getHomeDirectory() {
         return homeDirectory;
@@ -128,7 +189,7 @@ public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy 
             final String basePath = getBasePath(locator);
             final File file = FileLocatorUtils.constructFile(basePath, locator.getFileName());
             if (file.isFile()) {
-                return FileLocatorUtils.convertFileToURL(file);
+                return check(FileLocatorUtils.convertFileToURL(file));
             }
         }
         return null;

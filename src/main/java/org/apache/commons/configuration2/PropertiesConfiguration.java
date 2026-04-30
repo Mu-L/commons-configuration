@@ -38,8 +38,11 @@ import java.util.regex.Pattern;
 import org.apache.commons.configuration2.convert.ListDelimiterHandler;
 import org.apache.commons.configuration2.convert.ValueTransformer;
 import org.apache.commons.configuration2.event.ConfigurationEvent;
+import org.apache.commons.configuration2.ex.ConfigurationDeniedException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
+import org.apache.commons.configuration2.io.AbstractFileLocationStrategy;
+import org.apache.commons.configuration2.io.AbstractFileLocationStrategy.AbstractBuilder;
 import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.configuration2.io.FileLocator;
 import org.apache.commons.configuration2.io.FileLocatorAware;
@@ -159,6 +162,7 @@ import org.apache.commons.text.translate.UnicodeEscaper;
  * class, which is responsible for storing the layout of the parsed properties file (i.e. empty lines, comments, and
  * such things). The {@code getLayout()} method can be used to obtain this layout object. With {@code setLayout()} a new
  * layout object can be set. This should be done before a properties file was loaded.
+ * </p>
  * <p>
  * Like other {@code Configuration} implementations, this class uses a {@code Synchronizer} object to control concurrent
  * access. By choosing a suitable implementation of the {@code Synchronizer} interface, an instance can be made
@@ -166,6 +170,7 @@ import org.apache.commons.text.translate.UnicodeEscaper;
  * the {@code Synchronizer}. The intended usage is that these properties are set once at construction time through the
  * builder and after that remain constant. If you wish to change such properties during life time of an instance, you
  * have to use the {@code lock()} and {@code unlock()} methods manually to ensure that other threads see your changes.
+ * </p>
  * <p>
  * As this class extends {@link AbstractConfiguration}, all basic features like variable interpolation, list handling,
  * or data type conversions are available as well. This is described in the chapter
@@ -173,8 +178,28 @@ import org.apache.commons.text.translate.UnicodeEscaper;
  * and AbstractConfiguration</a> of the user's guide. There is also a separate chapter dealing with
  * <a href="commons.apache.org/proper/commons-configuration/userguide/howto_properties.html"> Properties files</a> in
  * special.
+ * </p>
+ * <p>
+ * As of version 2.15.0, by default, when including files, the only URL schemes allowed are {@code file} and {@code jar}. To override this default,
+ * you can either use the system property {@code org.apache.commons.configuration2.io.FileLocationStrategy.schemes} or build a subclass of
+ * {@link AbstractFileLocationStrategy}.
+ * </p>
+ * <strong>Using System Properties</strong>
+ * <p>
+ * The system property {@code org.apache.commons.configuration2.io.FileLocationStrategy.schemes} String value must be a comma-separated list of schemes,
+ * where the default is {@code "file,jar"}, and the complete list is {@code "file,http,https,jar"}.
+ * </p>
+ * <strong>Using a Builder</strong>
+ * <p>
+ * The root builder for {@link AbstractFileLocationStrategy} is {@link AbstractBuilder} where you define allowed schemes and hosts through its setter
+ * methods.
+ * </p>
+ * <p>
+ * For example, to programatically enable the shemes "file", "http", "https", and "jar" for all strategies, see {@link AbstractFileLocationStrategy}.
+ * </p>
  *
  * @see java.util.Properties#load
+ * @see AbstractFileLocationStrategy
  */
 public class PropertiesConfiguration extends BaseConfiguration implements FileBasedConfiguration, FileLocatorAware {
 
@@ -1336,7 +1361,17 @@ public class PropertiesConfiguration extends BaseConfiguration implements FileBa
     }
 
     /**
-     * Stores the current {@code FileLocator} for a following IO operation. The {@code FileLocator} is needed to resolve
+     * Gets the file locator.
+     *
+     * @return the file locator.
+     * @since 2.15.0
+     */
+    public FileLocator getLocator() {
+        return locator;
+    }
+
+    /**
+     * Sets the current {@code FileLocator} for a following IO operation. The {@code FileLocator} is needed to resolve
      * include files with relative file names.
      *
      * @param locator the current {@code FileLocator}
@@ -1377,7 +1412,7 @@ public class PropertiesConfiguration extends BaseConfiguration implements FileBa
     }
 
     /**
-     * Helper method for loading an included properties file. This method is called by {@code load()} when an
+     * Loads an included properties file. This method is called by {@code load()} when an
      * {@code include} property is encountered. It tries to resolve relative file names based on the current base path. If
      * this fails, a resolution based on the location of this properties file is tried.
      *
@@ -1389,21 +1424,23 @@ public class PropertiesConfiguration extends BaseConfiguration implements FileBa
     private void loadIncludeFile(final String fileName, final boolean optional, final Deque<URL> seenStack) throws ConfigurationException {
         if (locator == null) {
             throw new ConfigurationException(
-                "Load operation not properly initialized! Do not call read(InputStream) directly, but use a FileHandler to load a configuration.");
+                    "Load operation not properly initialized. Do not call read(InputStream) directly, use a FileHandler to load a configuration.");
         }
-
-        URL url = locateIncludeFile(locator.getBasePath(), fileName);
-        if (url == null) {
-            final URL baseURL = locator.getSourceURL();
-            if (baseURL != null) {
-                url = locateIncludeFile(baseURL.toString(), fileName);
+        URL url = null;
+        try {
+            url = locateIncludeFile(locator.getBasePath(), fileName);
+            if (url == null) {
+                final URL baseURL = locator.getSourceURL();
+                if (baseURL != null) {
+                    url = locateIncludeFile(baseURL.toString(), fileName);
+                }
             }
+        } catch (ConfigurationDeniedException e) {
+            getIncludeListener().accept(new ConfigurationException(e));
         }
-
         if (optional && url == null) {
             return;
         }
-
         if (url == null) {
             getIncludeListener().accept(new ConfigurationException(new FileNotFoundException(fileName), "Cannot resolve include file %s", fileName));
         } else {
@@ -1432,7 +1469,7 @@ public class PropertiesConfiguration extends BaseConfiguration implements FileBa
     }
 
     /**
-     * Tries to obtain the URL of an include file using the specified (optional) base path and file name.
+     * Locates the URL of an include file using the specified (optional) base path and file name.
      *
      * @param basePath the base path
      * @param fileName the file name

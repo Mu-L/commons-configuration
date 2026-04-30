@@ -28,33 +28,57 @@ import org.apache.commons.lang3.StringUtils;
  * This strategy ignores the URL and the base path stored in the passed in {@link FileLocator}. It is only triggered by
  * absolute names in the locator's {@code fileName} component.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public class AbsoluteNameLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * A singleton instance of this strategy.
+     * Builds new instances of {@link ProvidedURLLocationStrategy}.
+     *
+     * @return a new builder.
+     * @since 2.15.0
      */
-    static final AbsoluteNameLocationStrategy INSTANCE = new AbsoluteNameLocationStrategy();
+    public static StrategyBuilder<AbsoluteNameLocationStrategy> builder() {
+        return new StrategyBuilder<>(AbsoluteNameLocationStrategy::new);
+    }
 
     /**
-     * Constructs a new instance.
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
+     * <p>
+     * </p>
      */
     public AbsoluteNameLocationStrategy() {
         // empty
     }
 
     /**
-     * {@inheritDoc} This implementation constructs a {@code File} object from the locator's file name (if defined). If this
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
+     *
+     * @param builder How to build the instance.
+     * @since 2.15.0
+     */
+    public AbsoluteNameLocationStrategy(final AbstractBuilder<?, ?> builder) {
+        super(builder);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This implementation constructs a {@code File} object from the locator's file name (if defined). If this
      * results in an absolute file name pointing to an existing file, the corresponding URL is returned.
+     * </p>
      */
     @Override
     public URL locate(final FileSystem fileSystem, final FileLocator locator) {
         if (StringUtils.isNotEmpty(locator.getFileName())) {
             final File file = new File(locator.getFileName());
             if (file.isAbsolute() && file.exists()) {
-                return FileLocatorUtils.convertFileToURL(file);
+                return check(FileLocatorUtils.convertFileToURL(file));
             }
         }
         return null;

@@ -36,7 +36,11 @@ import java.net.URL;
  * {@code FileLocationStrategy} implementations; so a file can be searched using multiple strategies until one of them
  * is successful.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public interface FileLocationStrategy {

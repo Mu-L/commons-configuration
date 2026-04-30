@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.configuration2.SynchronizerTestImpl.Methods;
@@ -76,16 +77,26 @@ import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.configuration2.convert.LegacyListDelimiterHandler;
 import org.apache.commons.configuration2.convert.ListDelimiterHandler;
 import org.apache.commons.configuration2.event.ConfigurationEvent;
+import org.apache.commons.configuration2.ex.ConfigurationDeniedException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.AbsoluteNameLocationStrategy;
+import org.apache.commons.configuration2.io.BasePathLocationStrategy;
+import org.apache.commons.configuration2.io.ClasspathLocationStrategy;
+import org.apache.commons.configuration2.io.CombinedLocationStrategy;
 import org.apache.commons.configuration2.io.DefaultFileSystem;
 import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.configuration2.io.FileLocatorUtils;
 import org.apache.commons.configuration2.io.FileSystem;
+import org.apache.commons.configuration2.io.FileSystemLocationStrategy;
+import org.apache.commons.configuration2.io.HomeDirectoryLocationStrategy;
+import org.apache.commons.configuration2.io.ProvidedURLLocationStrategy;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junitpioneer.jupiter.SetSystemProperty;
 
 /**
  * Test for loading and saving properties files.
@@ -106,6 +117,21 @@ public class TestPropertiesConfiguration {
         }
     }
 
+    static class ExceptionList implements ConfigurationConsumer<ConfigurationException> {
+
+        private final List<ConfigurationException> exceptions = new ArrayList<>();
+
+        @Override
+        public void accept(final ConfigurationException t) throws ConfigurationException {
+            exceptions.add(t);
+        }
+
+        List<ConfigurationException> getExceptions() {
+            return exceptions;
+        }
+
+    }
+
     /**
      * A mock implementation of a HttpURLConnection used for testing saving to a HTTP server.
      */
@@ -117,8 +143,8 @@ public class TestPropertiesConfiguration {
         /** The output file. The output stream will point to this file. */
         private final File outputFile;
 
-        protected MockHttpURLConnection(final URL u, final int respCode, final File outFile) {
-            super(u);
+        protected MockHttpURLConnection(final URL url, final int respCode, final File outFile) {
+            super(url);
             returnCode = respCode;
             outputFile = outFile;
         }
@@ -221,6 +247,13 @@ public class TestPropertiesConfiguration {
         }
     }
 
+    /**
+     * All URL schemes.
+     */
+    private static final String ALL_SCHEMES = "file,http,https,jar";
+
+    private static final String KEY_SCHEMES = "org.apache.commons.configuration2.io.FileLocationStrategy.schemes";
+
     /** Constant for a test property name. */
     private static final String PROP_NAME = "testProperty";
 
@@ -315,6 +348,10 @@ public class TestPropertiesConfiguration {
         return checkConfig;
     }
 
+    private void reinitLocationStrategy() {
+        conf.initFileLocator(FileLocatorUtils.fileLocator(conf.getLocator()).locationStrategy(FileLocatorUtils.newDefaultLocationStrategy()).create());
+    }
+
     /**
      * Saves the test configuration to a default output file.
      *
@@ -330,7 +367,6 @@ public class TestPropertiesConfiguration {
         conf = new PropertiesConfiguration();
         conf.setListDelimiterHandler(new LegacyListDelimiterHandler(','));
         load(conf, TEST_PROPERTIES);
-
         // remove the test save file if it exists
         if (TEST_SAVE_PROPERTIES_FILE.exists()) {
             assertTrue(TEST_SAVE_PROPERTIES_FILE.delete());
@@ -772,12 +808,115 @@ public class TestPropertiesConfiguration {
     }
 
     @Test
-    void testIncludeLoadAllOnLoadException() throws Exception {
+    void testIncludeLoadAllOnLoadBadHostException() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        final ExceptionList list = new ExceptionList();
+        pc.setIncludeListener(list);
+        final FileHandler handler = new FileHandler(pc);
+        // @formatter:off
+        final CombinedLocationStrategy.Builder builder = new CombinedLocationStrategy.Builder()
+                .setSchemes(new TreeSet<>(Arrays.asList(ALL_SCHEMES.split(","))))
+                .setHostsRegEx(new TreeSet<>(Arrays.asList("GrantThisHost")));
+        handler.setLocationStrategy(builder.setSubStrategies(Arrays.asList(
+                new ProvidedURLLocationStrategy(builder),
+                new FileSystemLocationStrategy(builder),
+                new AbsoluteNameLocationStrategy(builder),
+                new BasePathLocationStrategy(builder),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
+                new ClasspathLocationStrategy(builder)))
+                .get());
+        // @formatter:on
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-host-unknown-exception.properties");
+        handler.load();
+        assertFalse(list.exceptions.isEmpty());
+        assertInstanceOf(ConfigurationDeniedException.class, list.exceptions.get(0).getCause());
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    @SetSystemProperty(key = KEY_SCHEMES, value = ALL_SCHEMES)
+    void testIncludeLoadAllOnLoadBadUrlException() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
+        final FileHandler handler = new FileHandler(pc);
+        // pick up @SetSystemProperty
+        handler.setLocationStrategy(FileLocatorUtils.newDefaultLocationStrategy());
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-host-unknown-exception.properties");
+        handler.load();
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    @SetSystemProperty(key = KEY_SCHEMES, value = ALL_SCHEMES)
+    void testIncludeLoadAllOnLoadBadUrlExceptionManualDefault() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
+        final FileHandler handler = new FileHandler(pc);
+        // pick up @SetSystemProperty
+        // @formatter:off
+        handler.setLocationStrategy(new CombinedLocationStrategy(Arrays.asList(
+                new ProvidedURLLocationStrategy(),
+                new FileSystemLocationStrategy(),
+                new AbsoluteNameLocationStrategy(),
+                new BasePathLocationStrategy(),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
+                new ClasspathLocationStrategy())));
+        // @formatter:on
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-host-unknown-exception.properties");
+        handler.load();
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    void testIncludeLoadAllOnLoadBadUrlExceptionManualPropagate() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
+        final FileHandler handler = new FileHandler(pc);
+        final CombinedLocationStrategy.Builder builder = new CombinedLocationStrategy.Builder()
+                .setSchemes(new TreeSet<>(Arrays.asList(ALL_SCHEMES.split(","))));
+        // @formatter:off
+        handler.setLocationStrategy(builder.setSubStrategies(Arrays.asList(
+                new ProvidedURLLocationStrategy(builder),
+                new FileSystemLocationStrategy(builder),
+                new AbsoluteNameLocationStrategy(builder),
+                new BasePathLocationStrategy(builder),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
+                new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
+                new ClasspathLocationStrategy(builder)))
+                .get());
+        // @formatter:on
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-host-unknown-exception.properties");
+        handler.load();
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    void testIncludeLoadAllOnLoadFileException() throws Exception {
         final PropertiesConfiguration pc = new PropertiesConfiguration();
         pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
         final FileHandler handler = new FileHandler(pc);
         handler.setBasePath(TEST_BASE_PATH);
-        handler.setFileName("include-load-exception.properties");
+        handler.setFileName("include-load-url-file-exception.properties");
+        handler.load();
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    @SetSystemProperty(key = KEY_SCHEMES, value = ALL_SCHEMES)
+    void testIncludeLoadAllOnLoadUrlException() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
+        final FileHandler handler = new FileHandler(pc);
+        // pick up @SetSystemProperty
+        handler.setLocationStrategy(FileLocatorUtils.newDefaultLocationStrategy());
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-http-exception.properties");
         handler.load();
         assertEquals("valueA", pc.getString("keyA"));
     }
@@ -831,6 +970,17 @@ public class TestPropertiesConfiguration {
         final FileHandler handler = new FileHandler(pc);
         handler.setBasePath(TEST_BASE_PATH);
         handler.setFileName("include-cyclical-reference.properties");
+        handler.load();
+        assertEquals("valueA", pc.getString("keyA"));
+    }
+
+    @Test
+    void testIncludeLoadUrlBadScheme() throws Exception {
+        final PropertiesConfiguration pc = new PropertiesConfiguration();
+        pc.setIncludeListener(PropertiesConfiguration.NOOP_INCLUDE_LISTENER);
+        final FileHandler handler = new FileHandler(pc);
+        handler.setBasePath(TEST_BASE_PATH);
+        handler.setFileName("include-load-url-bad-scheme-exception.properties");
         handler.load();
         assertEquals("valueA", pc.getString("keyA"));
     }

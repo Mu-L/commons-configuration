@@ -73,7 +73,9 @@ public final class FileLocatorUtils {
      * <li>Otherwise, the strategy gives up and returns <strong>null</strong> indicating that the file cannot be resolved.</li>
      * </ul>
      */
-    public static final FileLocationStrategy DEFAULT_LOCATION_STRATEGY = initDefaultLocationStrategy();
+    // @formatter:off
+    public static final FileLocationStrategy DEFAULT_LOCATION_STRATEGY = newDefaultLocationStrategy();
+    // @formatter:on
 
     /** Constant for the file URL protocol */
     private static final String FILE_SCHEME = "file:";
@@ -420,19 +422,19 @@ public final class FileLocatorUtils {
      * of the {@link #DEFAULT_LOCATION_STRATEGY} member field.
      *
      * @return the default {@code FileLocationStrategy}
+     * @since 2.15.0
      */
-    private static FileLocationStrategy initDefaultLocationStrategy() {
+    public static FileLocationStrategy newDefaultLocationStrategy() {
         // @formatter:off
-        final FileLocationStrategy[] subStrategies = {
-                ProvidedURLLocationStrategy.INSTANCE,
-                FileSystemLocationStrategy.INSTANCE,
-                AbsoluteNameLocationStrategy.INSTANCE,
-                BasePathLocationStrategy.INSTANCE,
-                new HomeDirectoryLocationStrategy(true),
-                new HomeDirectoryLocationStrategy(false),
-                ClasspathLocationStrategy.INSTANCE};
+        return new CombinedLocationStrategy(Arrays.asList(
+               new ProvidedURLLocationStrategy(),
+               new FileSystemLocationStrategy(),
+               new AbsoluteNameLocationStrategy(),
+               new BasePathLocationStrategy(),
+               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
+               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
+               new ClasspathLocationStrategy()));
         // @formatter:on
-        return new CombinedLocationStrategy(Arrays.asList(subStrategies));
     }
 
     /**

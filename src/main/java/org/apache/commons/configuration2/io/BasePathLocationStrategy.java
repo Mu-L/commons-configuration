@@ -29,21 +29,40 @@ import org.apache.commons.lang3.StringUtils;
  * base path (if present) and the file name. If the resulting path points to a valid file, the corresponding URL is
  * returned.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public class BasePathLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * A singleton instance of this strategy.
+     * Builds new instances of {@link ProvidedURLLocationStrategy}.
+     *
+     * @return a new builder.
+     * @since 2.15.0
      */
-    static final BasePathLocationStrategy INSTANCE = new BasePathLocationStrategy();
+    public static StrategyBuilder<BasePathLocationStrategy> builder() {
+        return new StrategyBuilder<>(BasePathLocationStrategy::new);
+    }
 
     /**
-     * Constructs a new instance.
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
      */
     public BasePathLocationStrategy() {
         // empty
+    }
+
+    /**
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
+     *
+     * @param builder How to build the instance.
+     * @since 2.15.0
+     */
+    public BasePathLocationStrategy(final AbstractBuilder<?, ?> builder) {
+        super(builder);
     }
 
     /**
@@ -55,7 +74,7 @@ public class BasePathLocationStrategy extends AbstractFileLocationStrategy {
         if (StringUtils.isNotEmpty(locator.getFileName())) {
             final File file = FileLocatorUtils.constructFile(locator.getBasePath(), locator.getFileName());
             if (file.isFile()) {
-                return FileLocatorUtils.convertFileToURL(file);
+                return check(FileLocatorUtils.convertFileToURL(file));
             }
         }
         return null;

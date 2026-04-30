@@ -26,15 +26,24 @@ import java.net.URL;
  * file name. These properties are passed to the {@code locateFromURL()} method of {@code FileSystem}. So the burden of
  * resolving the file is delegated to the {@code FileSystem}.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public class FileSystemLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * A singleton instance of this strategy.
+     * Builds new instances of {@link ProvidedURLLocationStrategy}.
+     *
+     * @return a new builder.
+     * @since 2.15.0
      */
-    static final FileSystemLocationStrategy INSTANCE = new FileSystemLocationStrategy();
+    public static StrategyBuilder<FileSystemLocationStrategy> builder() {
+        return new StrategyBuilder<>(FileSystemLocationStrategy::new);
+    }
 
     /**
      * Constructs a new instance.
@@ -44,10 +53,20 @@ public class FileSystemLocationStrategy extends AbstractFileLocationStrategy {
     }
 
     /**
+     * Constructs a new instance.
+     *
+     * @param builder How to build the instance.
+     * @since 2.15.0
+     */
+    public FileSystemLocationStrategy(final AbstractBuilder<?, ?> builder) {
+        super(builder);
+    }
+
+    /**
      * {@inheritDoc} This implementation delegates to the {@code FileSystem}.
      */
     @Override
     public URL locate(final FileSystem fileSystem, final FileLocator locator) {
-        return fileSystem.locateFromURL(locator.getBasePath(), locator.getFileName());
+        return check(fileSystem.locateFromURL(locator.getBasePath(), locator.getFileName()));
     }
 }

@@ -14,15 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.commons.configuration2.io;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.configuration2.ConfigurationAssert;
+import org.apache.commons.configuration2.ex.ConfigurationDeniedException;
+import org.apache.commons.configuration2.io.AbstractFileLocationStrategy.StrategyBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,6 +57,16 @@ public class TestProvidedURLLocationStrategy {
     }
 
     /**
+     * Tests a failed locate() operation.
+     */
+    @Test
+    void testLocateFailDefaultBuilder() {
+        final FileSystem fs = mock(FileSystem.class);
+        final FileLocator locator = FileLocatorUtils.fileLocator().basePath("somePath").fileName("someFile.xml").create();
+        assertNull(ProvidedURLLocationStrategy.builder().get().locate(fs, locator));
+    }
+
+    /**
      * Tests a successful locate() operation.
      */
     @Test
@@ -58,5 +75,30 @@ public class TestProvidedURLLocationStrategy {
         final URL url = ConfigurationAssert.getTestURL("test.xml");
         final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
         assertSame(url, strategy.locate(fs, locator));
+    }
+
+    /**
+     * Tests a successful locate() operation.
+     */
+    @Test
+    void testLocateSuccessDefaultBuilder() {
+        final FileSystem fs = mock(FileSystem.class);
+        final URL url = ConfigurationAssert.getTestURL("test.xml");
+        final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
+        assertSame(url, ProvidedURLLocationStrategy.builder().get().locate(fs, locator));
+    }
+
+    @Test
+    void testLocateSchemes() {
+        final FileSystem fs = mock(FileSystem.class);
+        final URL url = ConfigurationAssert.getTestURL("test.xml");
+        final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
+        final Set<String> schemes = new HashSet<>();
+        final StrategyBuilder<ProvidedURLLocationStrategy> builder = ProvidedURLLocationStrategy.builder();
+        assertEquals("file", builder.setSchemes(schemes).get().locate(fs, locator).getProtocol());
+        schemes.add("foo");
+        assertThrows(ConfigurationDeniedException.class, () -> builder.setSchemes(schemes).get().locate(fs, locator));
+        schemes.add("file");
+        assertSame(url, builder.setSchemes(schemes).get().locate(fs, locator));
     }
 }

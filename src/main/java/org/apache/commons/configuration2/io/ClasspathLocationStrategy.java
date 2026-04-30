@@ -26,15 +26,24 @@ import org.apache.commons.lang3.StringUtils;
  * This strategy implementation ignores the URL and the base path components of the passed in {@link FileLocator}. It
  * tries to look up the file name on both the class path and the system class path.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public class ClasspathLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * A singleton instance of this strategy.
+     * Builds new instances of {@link ProvidedURLLocationStrategy}.
+     *
+     * @return a new builder.
+     * @since 2.15.0
      */
-    static final ClasspathLocationStrategy INSTANCE = new ClasspathLocationStrategy();
+    public static StrategyBuilder<ClasspathLocationStrategy> builder() {
+        return new StrategyBuilder<>(ClasspathLocationStrategy::new);
+    }
 
     /**
      * Constructs a new instance.
@@ -44,10 +53,20 @@ public class ClasspathLocationStrategy extends AbstractFileLocationStrategy {
     }
 
     /**
+     * Constructs a new instance.
+     *
+     * @param builder How to build the instance.
+     * @since 2.15.0
+     */
+    public ClasspathLocationStrategy(final AbstractBuilder<?, ?> builder) {
+        super(builder);
+    }
+
+    /**
      * {@inheritDoc} This implementation looks up the locator's file name as a resource on the class path.
      */
     @Override
     public URL locate(final FileSystem fileSystem, final FileLocator locator) {
-        return StringUtils.isEmpty(locator.getFileName()) ? null : FileLocatorUtils.getClasspathResource(locator.getFileName());
+        return check(StringUtils.isEmpty(locator.getFileName()) ? null : FileLocatorUtils.getClasspathResource(locator.getFileName()));
     }
 }

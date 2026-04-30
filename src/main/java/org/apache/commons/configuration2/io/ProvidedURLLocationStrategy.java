@@ -22,25 +22,51 @@ import java.net.URL;
  * A specialized implementation of {@code FileLocationStrategy} which checks whether a passed in {@link FileLocator}
  * already has a defined URL.
  * <p>
- * {@code FileLocator} objects that have a URL already reference a file in an unambiguous way. Therefore, this strategy
+ * {@link FileLocator} objects that have a URL already reference a file in an unambiguous way. Therefore, this strategy
  * just returns the URL of the passed in {@code FileLocator}. It can be used as a first step of the file resolving
  * process. If it fails, more sophisticated attempts for resolving the file can be made.
  * </p>
+ * <p>
+ * See {@link AbstractFileLocationStrategy} learn how to grant an deny URL schemes and hosts.
+ * </p>
  *
+ * @see AbstractFileLocationStrategy
  * @since 2.0
  */
 public class ProvidedURLLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
-     * A singleton instance of this strategy.
+     * Builds new instances of {@link ProvidedURLLocationStrategy}.
+     *
+     * @return a new builder.
+     * @since 2.15.0
      */
-    static final ProvidedURLLocationStrategy INSTANCE = new ProvidedURLLocationStrategy();
+    public static StrategyBuilder<ProvidedURLLocationStrategy> builder() {
+        return new StrategyBuilder<>(ProvidedURLLocationStrategy::new);
+    }
+
+    /**
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
+     */
+    public ProvidedURLLocationStrategy() {
+    }
+
+    /**
+     * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
+     *
+     * @param builder How to build the instance.
+     * @since 2.15.0
+     */
+    public ProvidedURLLocationStrategy(final AbstractBuilder<?, ?> builder) {
+        super(builder);
+    }
 
     /**
      * {@inheritDoc} This implementation just returns the URL stored in the given {@code FileLocator}.
      */
     @Override
     public URL locate(final FileSystem fileSystem, final FileLocator locator) {
-        return locator.getSourceURL();
+        return check(locator.getSourceURL());
     }
+
 }
