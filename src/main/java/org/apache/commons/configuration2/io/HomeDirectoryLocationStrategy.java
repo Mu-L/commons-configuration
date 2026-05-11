@@ -59,6 +59,13 @@ public class HomeDirectoryLocationStrategy extends AbstractFileLocationStrategy 
         /** The home directory to be searched for the requested file. */
         private String homeDirectory;
 
+        /**
+         * Constructs a new instance.
+         */
+        public Builder() {
+            // empty
+        }
+
         @Override
         public HomeDirectoryLocationStrategy get() throws IOException {
             return new HomeDirectoryLocationStrategy(this);

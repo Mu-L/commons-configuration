@@ -59,6 +59,13 @@ public class CombinedLocationStrategy extends AbstractFileLocationStrategy {
         /** A collection with all sub strategies managed by this object. */
         private Collection<? extends FileLocationStrategy> subStrategies;
 
+        /**
+         * Constructs a new instance.
+         */
+        public Builder() {
+            // empty
+        }
+
         @Override
         public CombinedLocationStrategy get() throws IOException {
             return new CombinedLocationStrategy(this);

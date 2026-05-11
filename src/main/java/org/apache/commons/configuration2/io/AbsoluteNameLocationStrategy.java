@@ -49,8 +49,6 @@ public class AbsoluteNameLocationStrategy extends AbstractFileLocationStrategy {
 
     /**
      * Constructs a new instance where URL resources are bound by {@link AbstractFileLocationStrategy.AbstractBuilder}.
-     * <p>
-     * </p>
      */
     public AbsoluteNameLocationStrategy() {
         // empty
