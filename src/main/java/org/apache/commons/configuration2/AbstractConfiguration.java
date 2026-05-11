@@ -893,7 +893,7 @@ public abstract class AbstractConfiguration extends BaseEventSource implements C
     }
 
     /**
-     * Actually creates an iterator for iterating over the keys in this configuration. This method is called by
+     * Creates an iterator for iterating over the keys in this configuration. This method is called by
      * {@code getKeys()}, it has to be defined by concrete subclasses.
      *
      * @return an {@code Iterator} with all property keys in this configuration
