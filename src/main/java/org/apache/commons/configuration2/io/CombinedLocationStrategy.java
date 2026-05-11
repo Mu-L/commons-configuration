@@ -65,17 +65,6 @@ public class CombinedLocationStrategy extends AbstractFileLocationStrategy {
         }
 
         /**
-         * Sets the collection with sub strategies.
-         *
-         * @param subStrategies the collection with sub strategies.
-         * @return {@code this} instance.
-         */
-        public Builder setSubStrategies(final Collection<FileLocationStrategy> subStrategies) {
-            this.subStrategies = subStrategies;
-            return asThis();
-        }
-
-        /**
          * Propagates properties of the parent builder scheme and host to subStrategies.
          *
          * @return {@code this} instance.
@@ -94,6 +83,17 @@ public class CombinedLocationStrategy extends AbstractFileLocationStrategy {
                     }
                 });
             }
+            return asThis();
+        }
+
+        /**
+         * Sets the collection with sub strategies.
+         *
+         * @param subStrategies the collection with sub strategies.
+         * @return {@code this} instance.
+         */
+        public Builder setSubStrategies(final Collection<FileLocationStrategy> subStrategies) {
+            this.subStrategies = subStrategies;
             return asThis();
         }
 

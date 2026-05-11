@@ -77,15 +77,15 @@ public class TestYAMLConfiguration {
     }
 
     @Test
-    void testDoubleStringValues() {
-        final Object property = yamlConfiguration.getProperty("key5.example2");
-        assertEquals(Arrays.asList("a", "a", "value"), property);
-    }
-
-    @Test
     void testDoubleStringEmptyValues() {
         final Object property = yamlConfiguration.getProperty("key5.example1");
         assertEquals(Arrays.asList("", "", "value"), property);
+    }
+
+    @Test
+    void testDoubleStringValues() {
+        final Object property = yamlConfiguration.getProperty("key5.example2");
+        assertEquals(Arrays.asList("a", "a", "value"), property);
     }
 
     @Test

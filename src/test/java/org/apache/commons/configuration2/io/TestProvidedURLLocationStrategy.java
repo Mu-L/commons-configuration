@@ -66,6 +66,20 @@ public class TestProvidedURLLocationStrategy {
         assertNull(ProvidedURLLocationStrategy.builder().get().locate(fs, locator));
     }
 
+    @Test
+    void testLocateSchemes() {
+        final FileSystem fs = mock(FileSystem.class);
+        final URL url = ConfigurationAssert.getTestURL("test.xml");
+        final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
+        final Set<String> schemes = new HashSet<>();
+        final StrategyBuilder<ProvidedURLLocationStrategy> builder = ProvidedURLLocationStrategy.builder();
+        assertEquals("file", builder.setSchemes(schemes).get().locate(fs, locator).getProtocol());
+        schemes.add("foo");
+        assertThrows(ConfigurationDeniedException.class, () -> builder.setSchemes(schemes).get().locate(fs, locator));
+        schemes.add("file");
+        assertSame(url, builder.setSchemes(schemes).get().locate(fs, locator));
+    }
+
     /**
      * Tests a successful locate() operation.
      */
@@ -86,19 +100,5 @@ public class TestProvidedURLLocationStrategy {
         final URL url = ConfigurationAssert.getTestURL("test.xml");
         final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
         assertSame(url, ProvidedURLLocationStrategy.builder().get().locate(fs, locator));
-    }
-
-    @Test
-    void testLocateSchemes() {
-        final FileSystem fs = mock(FileSystem.class);
-        final URL url = ConfigurationAssert.getTestURL("test.xml");
-        final FileLocator locator = FileLocatorUtils.fileLocator().sourceURL(url).create();
-        final Set<String> schemes = new HashSet<>();
-        final StrategyBuilder<ProvidedURLLocationStrategy> builder = ProvidedURLLocationStrategy.builder();
-        assertEquals("file", builder.setSchemes(schemes).get().locate(fs, locator).getProtocol());
-        schemes.add("foo");
-        assertThrows(ConfigurationDeniedException.class, () -> builder.setSchemes(schemes).get().locate(fs, locator));
-        schemes.add("file");
-        assertSame(url, builder.setSchemes(schemes).get().locate(fs, locator));
     }
 }

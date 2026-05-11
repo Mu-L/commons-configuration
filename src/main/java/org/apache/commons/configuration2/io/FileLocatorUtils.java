@@ -418,26 +418,6 @@ public final class FileLocatorUtils {
     }
 
     /**
-     * Creates the default location strategy. This method creates a combined location strategy as described in the comment
-     * of the {@link #DEFAULT_LOCATION_STRATEGY} member field.
-     *
-     * @return the default {@code FileLocationStrategy}
-     * @since 2.15.0
-     */
-    public static FileLocationStrategy newDefaultLocationStrategy() {
-        // @formatter:off
-        return new CombinedLocationStrategy(Arrays.asList(
-               new ProvidedURLLocationStrategy(),
-               new FileSystemLocationStrategy(),
-               new AbsoluteNameLocationStrategy(),
-               new BasePathLocationStrategy(),
-               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
-               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
-               new ClasspathLocationStrategy()));
-        // @formatter:on
-    }
-
-    /**
      * Returns a flag whether all components of the given {@code FileLocator} describing the referenced file are defined. In
      * order to reference a file, it is not necessary that all components are filled in (for instance, the URL alone is
      * sufficient). For some use cases however, it might be of interest to have different methods for accessing the
@@ -501,6 +481,26 @@ public final class FileLocatorUtils {
             throw new ConfigurationException("Could not locate: %s", locator);
         }
         return url;
+    }
+
+    /**
+     * Creates the default location strategy. This method creates a combined location strategy as described in the comment
+     * of the {@link #DEFAULT_LOCATION_STRATEGY} member field.
+     *
+     * @return the default {@code FileLocationStrategy}
+     * @since 2.15.0
+     */
+    public static FileLocationStrategy newDefaultLocationStrategy() {
+        // @formatter:off
+        return new CombinedLocationStrategy(Arrays.asList(
+               new ProvidedURLLocationStrategy(),
+               new FileSystemLocationStrategy(),
+               new AbsoluteNameLocationStrategy(),
+               new BasePathLocationStrategy(),
+               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(true).getUnchecked(),
+               new HomeDirectoryLocationStrategy.Builder().setEvaluateBasePath(false).getUnchecked(),
+               new ClasspathLocationStrategy()));
+        // @formatter:on
     }
 
     /**

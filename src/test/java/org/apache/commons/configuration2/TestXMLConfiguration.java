@@ -1093,12 +1093,11 @@ public class TestXMLConfiguration {
      * Tests how to read from a DOM Node.
      */
     @Test
-    void testReadDomElementManually() throws Exception {
+    void testReadDomElement() throws Exception {
          conf = new XMLConfiguration();
          final Element domElement = buildDomElementFixture();
-         conf.initFileLocator(FileLocatorUtils.fileLocator().create());
          // Read from a DOM Element
-         conf.read(new ByteArrayInputStream(nodeToByteArray(domElement)));
+         conf.read(domElement);
          assertEquals("x", conf.getString("[@attr]"));
     }
 
@@ -1106,11 +1105,12 @@ public class TestXMLConfiguration {
      * Tests how to read from a DOM Node.
      */
     @Test
-    void testReadDomElement() throws Exception {
+    void testReadDomElementManually() throws Exception {
          conf = new XMLConfiguration();
          final Element domElement = buildDomElementFixture();
+         conf.initFileLocator(FileLocatorUtils.fileLocator().create());
          // Read from a DOM Element
-         conf.read(domElement);
+         conf.read(new ByteArrayInputStream(nodeToByteArray(domElement)));
          assertEquals("x", conf.getString("[@attr]"));
     }
 
