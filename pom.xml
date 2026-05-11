@@ -24,7 +24,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>commons-configuration2</artifactId>
-  <version>2.14.1-SNAPSHOT</version>
+  <version>2.15.0-SNAPSHOT</version>
   <name>Apache Commons Configuration</name>
   <inceptionYear>2001</inceptionYear>
   <description>
@@ -34,8 +34,8 @@
   <properties>
     <commons.componentid>configuration</commons.componentid>
     <commons.module.name>org.apache.commons.configuration2</commons.module.name>
-    <commons.release.version>2.14.1</commons.release.version>
-    <commons.release.next>2.14.2</commons.release.next>
+    <commons.release.version>2.15.0</commons.release.version>
+    <commons.release.next>2.15.1</commons.release.next>
     <commons.release.desc>(Java 8 or above)</commons.release.desc>
     <commons.jira.id>CONFIGURATION</commons.jira.id>
     <commons.jira.pid>12310467</commons.jira.pid>
@@ -87,7 +87,7 @@
     <connection>scm:git:https://gitbox.apache.org/repos/asf/commons-configuration.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/commons-configuration.git</developerConnection>
     <url>https://gitbox.apache.org/repos/asf?p=commons-configuration.git</url>
-    <tag>rel/commons-configuration-2.13.0</tag>
+    <tag>rel/commons-configuration-2.15.0</tag>
   </scm>
   <distributionManagement>
     <site>
