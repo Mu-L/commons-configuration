@@ -45,7 +45,7 @@ Apache Commons Configuration
 
 [![Java CI](https://github.com/apache/commons-configuration/actions/workflows/maven.yml/badge.svg)](https://github.com/apache/commons-configuration/actions/workflows/maven.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/org.apache.commons/commons-configuration2?label=Maven%20Central)](https://search.maven.org/artifact/org.apache.commons/commons-configuration2)
-[![Javadocs](https://javadoc.io/badge/org.apache.commons/commons-configuration2/2.14.0.svg)](https://javadoc.io/doc/org.apache.commons/commons-configuration2/2.14.0)
+[![Javadocs](https://javadoc.io/badge/org.apache.commons/commons-configuration2/2.15.0.svg)](https://javadoc.io/doc/org.apache.commons/commons-configuration2/2.15.0)
 [![CodeQL](https://github.com/apache/commons-configuration/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/apache/commons-configuration/actions/workflows/codeql-analysis.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/apache/commons-configuration/badge)](https://api.securityscorecards.dev/projects/github.com/apache/commons-configuration)
 
@@ -69,7 +69,7 @@ Alternatively, you can pull it from the central Maven repositories:
 <dependency>
   <groupId>org.apache.commons</groupId>
   <artifactId>commons-configuration2</artifactId>
-  <version>2.14.0</version>
+  <version>2.15.0</version>
 </dependency>
 ```
 
@@ -116,4 +116,5 @@ Additional Resources
 Apache Commons Components
 -------------------------
 
-Please see the [list of components](https://commons.apache.org/components.html)
++ [List of Apache Commons components](https://commons.apache.org/components.html): homepages and documentation for all components.
++ [`REPOSITORIES.md`](https://github.com/apache/commons-parent/blob/master/REPOSITORIES.md): overview of the code repositories and their build status.
