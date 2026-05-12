@@ -27,6 +27,7 @@
       <!-- FIX -->
       <action type="update" dev="ggregory" due-to="Gary Gregory">Disable include schemes http[s] by default, see AbstractFileLocationStrategy #633.</action>
       <action type="update" dev="ggregory" due-to="Erichen, Gary Gregory">Detect and avoid processing cycles in YAML input (YAMLConfiguration) #634.</action>
+      <action type="update" dev="ggregory" due-to="Piotr P. Karwasz, Gary Gregory">Extend scheme validation to inner schemes of jar: URLs #636.</action>
       <!-- ADD -->
       <!-- UPDATE -->
       <action type="update" dev="ggregory" due-to="Gary Gregory">Bump org.apache.commons:commons-parent from 97 to 99</action>
