@@ -20,6 +20,7 @@ Changes
 
 *                     Disable include schemes http[s] by default, see AbstractFileLocationStrategy #633. Thanks to Gary Gregory.
 *                     Detect and avoid processing cycles in YAML input (YAMLConfiguration) #634. Thanks to Erichen, Gary Gregory.
+*                     Extend scheme validation to inner schemes of jar: URLs #636. Thanks to Piotr P. Karwasz, Gary Gregory.
 *                     Bump org.apache.commons:commons-parent from 97 to 99 Thanks to Gary Gregory.
 *                     Bump commons-io:commons-io from 2.21.0 to 2.22.0. Thanks to Gary Gregory.
 *                     Bump commons-codec:commons-codec from 1.21.0 to 1.22.0. Thanks to Gary Gregory.
