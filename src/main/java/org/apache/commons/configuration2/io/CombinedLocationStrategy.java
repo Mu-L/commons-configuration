@@ -80,7 +80,7 @@ public class CombinedLocationStrategy extends AbstractFileLocationStrategy {
             if (subStrategies != null) {
                 subStrategies.forEach(e -> {
                     if (e instanceof AbstractFileLocationStrategy) {
-                        AbstractFileLocationStrategy afls = (AbstractFileLocationStrategy) e;
+                        final AbstractFileLocationStrategy afls = (AbstractFileLocationStrategy) e;
                         final Set<String> schemes = afls.getSchemes();
                         schemes.clear();
                         schemes.addAll(getSchemes());

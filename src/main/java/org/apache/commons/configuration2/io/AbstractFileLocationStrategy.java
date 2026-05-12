@@ -234,7 +234,7 @@ public abstract class AbstractFileLocationStrategy implements FileLocationStrate
      * @throws ConfigurationDeniedException if the URL or any embedded URL fails the check, or a {@code jar:} URL is malformed.
      */
     static void checkUrl(final URL url, final Set<String> validSchemes, final Set<Pattern> validHosts) {
-        String scheme = url.getProtocol();
+        final String scheme = url.getProtocol();
         checkScheme(scheme, validSchemes);
         if ("jar".equalsIgnoreCase(scheme)) {
             try {

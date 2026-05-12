@@ -1435,7 +1435,7 @@ public class PropertiesConfiguration extends BaseConfiguration implements FileBa
                     url = locateIncludeFile(baseURL.toString(), fileName);
                 }
             }
-        } catch (ConfigurationDeniedException e) {
+        } catch (final ConfigurationDeniedException e) {
             getIncludeListener().accept(new ConfigurationException(e));
         }
         if (optional && url == null) {

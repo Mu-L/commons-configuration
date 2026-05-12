@@ -377,7 +377,7 @@ public final class ConfigurationUtils {
      * @since 2.2
      */
     public static void dump(final ImmutableConfiguration configuration, final PrintWriter out) {
-        AtomicInteger last = new AtomicInteger(configuration.size());
+        final AtomicInteger last = new AtomicInteger(configuration.size());
         configuration.forEach((k, v) -> {
             out.print(k);
             out.print("=");
