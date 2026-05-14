@@ -160,7 +160,7 @@ limitations under the License.
                </p>
                <ul>
                  <li><a href="https://www.cve.org/CVERecord?id=CVE-2026-45205">CVE-2026-45205</a></li>
-                 <li><a href="PR #634">https://github.com/apache/commons-configuration/pull/634</a></li>
+                 <li><a href="https://github.com/apache/commons-configuration/pull/634">PR #634</a></li>
                </ul>
              </subsection>
         </section>
